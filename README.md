@@ -33,21 +33,26 @@ chmod +x ./first_start.sh && ./first_start.sh
 3. Далее запускать(start project):
 
 ```bash
-docker-compose up app || docker compose up app
+sudo docker-compose up app || sudo docker compose up app
 ```
 4. Консольная команда для получения всех валют из API ECB:
 ```bash
-docker-compose -f docker-compose.command.yml up || docker compose -f docker-compose.command.yml up
+sudo docker-compose -f docker-compose.command.yml up || sudo docker compose -f docker-compose.command.yml up
 ```
-*Команда импорта валют(Если не через докер)*
+*Команда импорта валют(Если не через докер)(**Первый запуск**)*
 ```bash
-python3 -m venv venv && source venv/bin/activate && python3 manage.py import_exchange_rates
+(python3 -m venv venv || python -m venv venv || python3.13 -m venv venv) && source venv/bin/activate && pip install -r requirements.txt && (python3.13 manage.py import_exchange_rates || python manage.py import_exchange_rates || python 3.13 manage.py import_exchange_rates)
 ```
+Далее для повторного запуска тестов(Зависит от OS каким образом писать python):
+```bash
+python3.13 manage.py import_exchange_rates || python manage.py import_exchange_rates || python 3.13 manage.py import_exchange_rates
+```
+
 Парсит XML-файл с сайта ЕЦБ и обновляет список курсов валют.
 
 ### Тесты (Если нужно отдельно прогнать)
 ```bash
-docker-compose run --rm tests
+sudo docker-compose run --rm tests || sudo docker compose run tests
 ```
 
 
@@ -71,41 +76,6 @@ docker-compose run --rm tests
     Docker: веб-приложение, redis и зависимости изолированы
 
     unittests + coverage: тесты с полным покрытием
-
-
-📂 Структура проекта
-
-currency-converter/
-├── backend
-│   ├── __init__.py
-│   ├── __pycache__
-│   ├── asgi.py
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
-├── currency
-│   ├── __init__.py
-│   ├── __pycache__
-│   ├── admin.py
-│   ├── apps.py
-│   ├── management
-│   ├── migrations
-│   ├── models.py
-│   ├── serializers.py
-│   ├── templates
-│   ├── tests.py
-│   ├── urls.py
-│   ├── utils.py
-│   └── views.py
-├── docker-compose.command.yml
-├── docker-compose.override.yml
-├── docker-compose.yml
-├── Dockerfile
-├── first_start.sh
-├── manage.py
-├── README.md
-├── requirements.txt
-└── tests.sh
 
 
 **by 507015✝**
