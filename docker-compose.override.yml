@@ -1,0 +1,12 @@
+services:
+  tests:
+    build:
+      context: .
+    working_dir: /app
+    command: ./tests.sh
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+

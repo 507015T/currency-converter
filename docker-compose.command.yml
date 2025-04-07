@@ -1,0 +1,9 @@
+services:
+  command:
+    build:
+      context: .
+    working_dir: /app
+    command: ["python", "manage.py", "import_exchange_rates"]
+    volumes:
+      - .:/app
+
