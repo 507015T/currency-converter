@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # "django_extensions",
     "rest_framework",
-    "drf_spectacular",
+    # "drf_spectacular",
     "currency.apps.CurrencyConfig",
 ]
 
@@ -148,22 +148,22 @@ REST_FRAMEWORK = {
             "rest_framework.renderers.BrowsableAPIRenderer",
         )
     ),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    # "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # # swagger
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Currency Converter API",
-    "DESCRIPTION": "",
-    "VERSION": "0.0.1",
-    "SERVE_INCLUDE_SCHEMA": False,
-    # OTHER SETTINGS
-}
+# SPECTACULAR_SETTINGS = {
+#     "TITLE": "Currency Converter API",
+#     "DESCRIPTION": "",
+#     "VERSION": "0.0.1",
+#     "SERVE_INCLUDE_SCHEMA": False,
+#     # OTHER SETTINGS
+# }
 # redis
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{os.getenv("REDIS_HOST", "localhost")}:{os.getenv("REDIS_PORT", "6379")}/1",
+        "LOCATION": f"redis://localhost:{os.getenv("REDIS_PORT", "6379")}/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },

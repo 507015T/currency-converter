@@ -25,19 +25,19 @@ git clone https://github.com/507015T/currency-converter.git
 cd currency-converter
 ```
 
-2. Запускаем через Docker(Только первый запуск(Build + run tests))
+2. Запускаем через Docker(Только первый запуск(Build + run tests + start project))
 
 ```bash
 chmod +x ./first_start.sh && ./first_start.sh
 ```
-3. Далее запускать:
+3. Далее запускать(start project):
 
 ```bash
-docker-compose up app
+docker-compose up app || docker compose up app
 ```
 4. Консольная команда для получения всех валют из API ECB:
 ```bash
-docker-compose -f docker-compose.command.yml up
+docker-compose -f docker-compose.command.yml up || docker compose -f docker-compose.command.yml up
 ```
 *Команда импорта валют(Если не через докер)*
 ```bash
