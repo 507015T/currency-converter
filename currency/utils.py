@@ -43,11 +43,9 @@ def fetch_exchange_rates_for_db():
         rate = float(cube[1].attrib["rate"])
         rates.append(
             {
-                "id": id,
                 "currency_name": currency,
                 "rate": rate,
                 "actual_date": actual_date,
-                "is_deleted": False,
                 "is_modified": False,
             }
         )

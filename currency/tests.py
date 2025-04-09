@@ -1,16 +1,18 @@
 from django.test.client import Client
 from django.test.testcases import SimpleTestCase
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from django.db import connection
 from django.conf import settings
 from rest_framework.exceptions import ErrorDetail
 from currency.serializers import CurrencySerializer
 from currency.models import Currency
-from datetime import date
+from datetime import date, timedelta
 from django.core.cache import cache
 from rest_framework.test import APIClient
 from django.test import TestCase
+
 settings.DEBUG = True
 
 
@@ -23,13 +25,13 @@ class CurrencyAPITestCase(TestCase):
     def test_ok(self):
         response = self.client.get(reverse("currency-list"), format="json")
         self.assertEqual(status.HTTP_200_OK, response.status_code, response.content)
-        self.assertEqual(2, len(connection.queries))
+        self.assertEqual(4, len(connection.queries))
         serializer_data = CurrencySerializer(Currency.objects.all(), many=True).data
         self.assertEqual(serializer_data, response.data)
 
     def test_get_from_cache(self):
         response = self.client.get(reverse("currency-list"), format="json")
-        self.assertEqual(2, len(connection.queries))
+        self.assertEqual(4, len(connection.queries))
         response = self.client.get(reverse("currency-list"), format="json")
         self.assertEqual(0, len(connection.queries))
 
@@ -38,11 +40,23 @@ class CurrencyAPITestCase(TestCase):
             reverse("currency-detail", kwargs={"currency": "usd"}), format="json"
         )
         self.assertEqual(status.HTTP_200_OK, response.status_code, response.content)
-        self.assertEqual(3, len(connection.queries))
+        self.assertEqual(5, len(connection.queries))
         serializer_data = CurrencySerializer(
             Currency.objects.get(currency_name="USD")
         ).data
         self.assertEqual(serializer_data, response.data)
+
+    def test_get_unknown_currency(self):
+        response = self.client.get(
+            reverse("currency-detail", kwargs={"currency": "btc"}), format="json"
+        )
+        self.assertEqual(
+            status.HTTP_404_NOT_FOUND, response.status_code, response.content
+        )
+        self.assertEqual(
+            {"detail": ErrorDetail(string="Валюта BTC не найдена", code="not_found")},
+            response.data,
+        )
 
     def test_update_currency(self):
         response = self.client.patch(
@@ -50,7 +64,6 @@ class CurrencyAPITestCase(TestCase):
             data={"actual_date": "2025-03-15"},
             format="json",
         )
-        self.assertEqual(4, len(connection.queries))
         serializer_data = CurrencySerializer(
             Currency.objects.get(currency_name="ZAR")
         ).data
@@ -65,12 +78,10 @@ class CurrencyAPITestCase(TestCase):
                 "id": 30,
                 "rate": "13.0000",
                 "currency_name": "ZAR",
-                "is_deleted": False,
                 "is_modified": True,
             },
             format="json",
         )
-        self.assertEqual(4, len(connection.queries))
         serializer_data = CurrencySerializer(
             Currency.objects.get(currency_name="ZAR")
         ).data
@@ -131,6 +142,15 @@ class CurrencyAPITestCase(TestCase):
             reverse("currency-detail", kwargs={"currency": "usd"}), format="json"
         )
         self.assertEqual(status.HTTP_404_NOT_FOUND, response.status_code)
+        self.assertEqual(
+            {"detail": ErrorDetail(string="Валюта USD не найдена", code="not_found")},
+            response.data,
+        )
+        response = self.client.get(reverse("currency-list"), format="json")
+        expected_data = CurrencySerializer(
+            Currency.objects.filter(deleted_date=None), many=True
+        )
+        self.assertEqual(expected_data.data, response.data)
 
     # convert ----------------------
     def test_convert_ok_cross_course(self):
@@ -246,8 +266,56 @@ class CurrencyAPITestCase(TestCase):
         }
         self.assertEqual(expected_data, response.data, response.content)
 
+    def test_delete_old_currency(self):
+        response = self.client.get(reverse("currency-list"), format="json")
+        self.assertEqual("USD", response.data[0]["currency_name"])
+        self.assertEqual(30, len(response.data))
+        cache.clear()
+        usd = Currency.objects.get(currency_name="USD")
+        usd.deleted_date = timezone.now() + timedelta(days=30)
+        usd.save()
+        response = self.client.get(reverse("currency-list"), format="json")
+        self.assertEqual("JPY", response.data[0]["currency_name"])
+        self.assertEqual(29, len(response.data))
 
+    def test_convert_unknown_currencies(self):
 
+        response = self.client.post(
+            reverse("currency-convert"),
+            data={"from_currency": "BTC", "to_currency": "TON", "amount": 9},
+            format="json",
+        )
+        self.assertEqual(
+            {
+                "from_currency": [
+                    ErrorDetail(
+                        string='"BTC" is not a valid choice.', code="invalid_choice"
+                    )
+                ],
+                "to_currency": [
+                    ErrorDetail(
+                        string='"TON" is not a valid choice.', code="invalid_choice"
+                    )
+                ],
+            },
+            response.data,
+        )
+
+    def test_update_only_not_deleted_currencies(self):
+        actual_currencies = self.client.get(
+            reverse("currency-list"), format="json"
+        ).data[
+            2:
+        ]  # without usd and jpy
+        usd_delete = self.client.delete(
+            reverse("currency-detail", kwargs={"currency": "usd"}), format="json"
+        )
+        jpy_delete = self.client.delete(
+            reverse("currency-detail", kwargs={"currency": "jpy"}), format="json"
+        )
+        Currency.objects.update(actual_date=date(1998, 12, 1), rate=6.6666)
+        response = self.client.get(reverse("currency-list"), format="json").data
+        self.assertEqual(actual_currencies, response)
 
 
 class CurrencyCalcTestCase(TestCase):
@@ -255,4 +323,3 @@ class CurrencyCalcTestCase(TestCase):
         response = self.client.get("/calc/")
         self.assertTemplateUsed(response, "calc.html")
         self.assertContains(response, "Calc Currencies")
-

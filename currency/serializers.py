@@ -6,6 +6,8 @@ from currency.models import Currency
 class CurrencySerializer(serializers.ModelSerializer):
     currency_name = serializers.ReadOnlyField()
     id = serializers.ReadOnlyField()
+    deleted_date = serializers.ReadOnlyField()
+    is_modified = serializers.ReadOnlyField()
 
     def update(self, instance, validated_data):
         validated_data["is_modified"] = True
@@ -24,9 +26,12 @@ class CurrencyConvertSerializer(serializers.Serializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         try:
-            currencies = [*Currency.objects.all(), "EUR"]
-            self.fields["from_currency"].choices = currencies
-            self.fields["to_currency"].choices = currencies
+            currencies = list(
+                Currency.objects.values_list("currency_name", flat=True)
+            ) + ["EUR"]
+            choices = [(c, c) for c in currencies]
+            self.fields["from_currency"].choices = choices
+            self.fields["to_currency"].choices = choices
         except:
             self.fields["from_currency"].choices = []
             self.fields["to_currency"].choices = []
@@ -34,7 +39,15 @@ class CurrencyConvertSerializer(serializers.Serializer):
     def validate(self, attrs):
         if attrs.get("from_currency") == attrs.get("to_currency"):
             raise ValidationError({"response": "Нельзя указывать одинаковые валюты"})
-        return super().validate(attrs)
+        if attrs["from_currency"] != "EUR":
+            attrs["from_currency"] = Currency.objects.get(
+                currency_name=attrs["from_currency"]
+            )
+        if attrs["to_currency"] != "EUR":
+            attrs["to_currency"] = Currency.objects.get(
+                currency_name=attrs["to_currency"]
+            )
+        return attrs
 
     def to_representation(self, instance):
         from_currency = instance.get("from_currency")

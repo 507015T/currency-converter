@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # "django_extensions",
     "rest_framework",
-    # "drf_spectacular",
+    "drf_spectacular",
     "currency.apps.CurrencyConfig",
 ]
 
@@ -148,17 +148,17 @@ REST_FRAMEWORK = {
             "rest_framework.renderers.BrowsableAPIRenderer",
         )
     ),
-    # "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-# # swagger
-# SPECTACULAR_SETTINGS = {
-#     "TITLE": "Currency Converter API",
-#     "DESCRIPTION": "",
-#     "VERSION": "0.0.1",
-#     "SERVE_INCLUDE_SCHEMA": False,
-#     # OTHER SETTINGS
-# }
+# swagger
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Currency Converter API",
+    "DESCRIPTION": "",
+    "VERSION": "0.0.1",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # OTHER SETTINGS
+}
 # redis
 CACHES = {
     "default": {
@@ -176,13 +176,13 @@ INTERNAL_IPS = [
     "127.0.0.1",  # Add your development machine's IP address here
 ]
 
-if DEBUG and not TESTING:
-    INSTALLED_APPS = [
-        *INSTALLED_APPS,
-        "debug_toolbar",
-    ]
-    MIDDLEWARE = [
-        "debug_toolbar.middleware.DebugToolbarMiddleware",
-        "debug_toolbar_force.middleware.ForceDebugToolbarMiddleware",
-        *MIDDLEWARE,
-    ]
+# if DEBUG and not TESTING:
+#     INSTALLED_APPS = [
+#         *INSTALLED_APPS,
+#         "debug_toolbar",
+#     ]
+#     MIDDLEWARE = [
+#         "debug_toolbar.middleware.DebugToolbarMiddleware",
+#         "debug_toolbar_force.middleware.ForceDebugToolbarMiddleware",
+#         *MIDDLEWARE,
+#     ]

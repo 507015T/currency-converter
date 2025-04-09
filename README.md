@@ -59,10 +59,11 @@ sudo docker-compose run --rm tests || sudo docker compose run tests
 Покрытие кода: 100%
 📡 API эндпоинты
 Метод	URL	Описание
+- GET	    | /swagger/	Swagger(Документация)
 - GET	    | /api/currencies/	Список курсов валют
-- GET	    | /api/currencies/<currency>/	Курс определенной валюты
-- PUT/PATCH | /api/currencies/<currency>/	Обновить курс валюты
-- DELETE	| /api/currencies/<currency>/	Удалить курс валюты
+- GET	    | /api/currencies/{currency}/	Курс определенной валюты
+- PUT/PATCH | /api/currencies/{currency}/	Обновить курс валюты
+- DELETE	| /api/currencies/{currency}/	Удалить курс валюты
 - POST	    | /api/currencies/convert/  Конвертация валют
 - GET/POST	| /calc/    HTML-калькулятор
 
